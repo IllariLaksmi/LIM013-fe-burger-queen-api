@@ -1,6 +1,4 @@
-const express = require('express');
-const mysql = require('mysql');
-const { database } = require('./database.js');
+const express = require('express'); // framework of node.js
 const config = require('./config');
 const authMiddleware = require('./middleware/auth');
 const errorHandler = require('./middleware/error');
@@ -9,19 +7,23 @@ const pkg = require('./package.json');
 
 const { port, dbUrl, secret } = config;
 const app = express();
-// TODO: Conexión a la Base de Datos (MongoDB o MySQL)
-const conexion = mysql.createConnection(database);
-conexion.connect((error) => {
-  if (error) {
-    throw error;
-  } else {
-    // parse application/x-www-form-urlencoded
-    app.use(express.urlencoded({ extended: false }));
-    app.use(express.json());
-    app.use(authMiddleware(secret));
-    app.set('config', config);
-    app.set('pkg', pkg);
-    // Registrar rutas
+// TODO: Conexión a la Base de Datos (MySQL)
+ 
+// parse application/x-www-form-urlencoded --parse URL-encoded bodies
+app.use(express.urlencoded({ extended: false }));
+// recognize the incoming request object as a JSON object
+app.use(express.json());
+// import de code of middleware
+app.use(authMiddleware(secret));
+
+app.set('config', config); // --> variables de entorno
+
+app.set('pkg', pkg);
+// Registrar rutas
+routes(app, (err) => {
+  if (err) {
+    throw err;
+
     routes(app, (err) => {
       if (err) {
         throw err;
@@ -33,6 +35,8 @@ conexion.connect((error) => {
     });
     console.log('conexion exitosa');
   }
+  app.use(errorHandler);
+  app.listen(port, () => { // starts at the port
+    console.info(`App listening on port ${port}`);
+  });
 });
-
-conexion.end();
