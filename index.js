@@ -9,7 +9,15 @@ const pkg = require('./package.json');
 const { port, dbUrl, secret } = config;
 const app = express();
 // TODO: Conexión a la Base de Datos (MySQL)
+const { conexion } = require('./database.js');
 
+conexion.connect((error) => {
+  if (error) {
+    throw error;
+  } else {
+    console.log('conexion exitosa...');
+  }
+});
 // parse application/x-www-form-urlencoded --parse URL-encoded bodies
 app.use(express.urlencoded({ extended: false }));
 // recognize the incoming request object as a JSON object
