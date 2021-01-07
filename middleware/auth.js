@@ -1,3 +1,11 @@
+
+const jwt = require('jsonwebtoken'); // middleware
+const conexion = require('../bk_data/bq_data');
+
+module.exports = (secret) => (req, resp, next) => {
+  const { authorization } = req.headers;
+
+  if (!authorization) { // si no hay token
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-nested-ternary */
 const jwt = require('jsonwebtoken');
@@ -18,23 +26,29 @@ module.exports = (secret) => (req, resp, next) => {
     if (err) {
       return next(403);
     }
-    // TODO: Verificar identidad del usuario usando `decodeToken.uid`
-    const sql = `SELECT * FROM users WHERE email = "${decodedToken.result[0].email}" `;
 
-    conexion.query(sql, (error, result) => {
-      if (error) throw error;
-      if (result) {
-        req.user = result[0];
-        next();
-      } else {
-        next(404);
-      }
-    });
+    // TODO: Verificar identidad del usuario usando `decodedToken.uid`
+    try {
+      conexion.query('SELECT * FROM users', (error, result) => {
+        if (error) { throw error; }
+        // console.log(decodedToken);
+        const userVerified = result.find((user) => user.email === decodedToken.email);
+        if (userVerified) {
+          req.user = userVerified;
+          next();
+        } else { next(404); }
+      });
+    } catch (error) {
+      next(404);
+    }
   });
 };
 
 module.exports.isAuthenticated = (req) => {
+
+
   // TODO: decidir por la informacion del request si la usuaria esta autenticada
+
   if (req.user) {
     return true;
   }
@@ -43,7 +57,8 @@ module.exports.isAuthenticated = (req) => {
 
 module.exports.isAdmin = (req) => {
   // TODO: decidir por la informacion del request si la usuaria es admin
-  if (req.user.isAdmin) {
+  if (req.user.rolesAdmin) {
+
     return true;
   }
   return false;
