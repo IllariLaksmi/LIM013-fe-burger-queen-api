@@ -6,7 +6,6 @@ const bcrypt = require('bcrypt');
 const conexion = require('../bk_data/bq_data');
 
 const config = require('../config');
-const { conexion } = require('../database');
 
 const { secret } = config;
 

@@ -11,7 +11,6 @@ const pkg = require('./package.json');
 
 // eslint-disable-next-line no-unused-vars
 const { port, dbUrl, secret } = config;
-<
 const app = express(); // inicializarla
 app.use(cors());
 app.set('config', config); // settings nombre de variables
@@ -22,8 +21,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.use(authMiddleware(secret)); // import the code of  middleware
-=======
-const app = express();
 // TODO: Conexión a la Base de Datos (MySQL)
 
 // parse application/x-www-form-urlencoded --parse URL-encoded bodies

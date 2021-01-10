@@ -1,15 +1,6 @@
-
+/* eslint-disable no-nested-ternary */
 const jwt = require('jsonwebtoken'); // middleware
 const conexion = require('../bk_data/bq_data');
-
-module.exports = (secret) => (req, resp, next) => {
-  const { authorization } = req.headers;
-
-  if (!authorization) { // si no hay token
-/* eslint-disable prefer-destructuring */
-/* eslint-disable no-nested-ternary */
-const jwt = require('jsonwebtoken');
-const conexion = require('../database');
 
 module.exports = (secret) => (req, resp, next) => {
   const { authorization } = req.headers;
@@ -45,8 +36,6 @@ module.exports = (secret) => (req, resp, next) => {
 };
 
 module.exports.isAuthenticated = (req) => {
-
-
   // TODO: decidir por la informacion del request si la usuaria esta autenticada
 
   if (req.user) {
@@ -58,7 +47,6 @@ module.exports.isAuthenticated = (req) => {
 module.exports.isAdmin = (req) => {
   // TODO: decidir por la informacion del request si la usuaria es admin
   if (req.user.rolesAdmin) {
-
     return true;
   }
   return false;
@@ -67,5 +55,7 @@ module.exports.isAdmin = (req) => {
 // eslint-disable-next-line max-len
 module.exports.requireAuth = (req, resp, next) => (!module.exports.isAuthenticated(req) ? next(401) : next());
 
+// eslint-disable-next-line max-len
+// eslint-disable-next-line no-nested-ternary
 // eslint-disable-next-line max-len
 module.exports.requireAdmin = (req, resp, next) => (!module.exports.isAuthenticated(req) ? next(401) : !module.exports.isAdmin(req) ? next(403) : next());

@@ -1,6 +1,4 @@
-
 /* eslint-disable no-console */
-
 const bcrypt = require('bcrypt');
 
 const { dataError } = require('../utils/utils');
@@ -17,7 +15,6 @@ const {
 } = require('../controller/users');
 
 const { validate, valPassword } = require('../utils/validation');
-
 
 const initAdminUser = (app, next) => {
   const { adminEmail, adminPassword } = app.get('config');
