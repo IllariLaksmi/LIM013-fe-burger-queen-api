@@ -1,7 +1,5 @@
-
 const express = require('express');
 const cors = require('cors');
-
 
 const config = require('./config');
 const authMiddleware = require('./middleware/auth');
@@ -39,12 +37,9 @@ routes(app, (err) => {
   if (err) {
     throw err;
   }
-  app.use(errorHandler)
-
- 
+  app.use(errorHandler);
 
   app.listen(port, () => { // starts at the port
-
     console.info(`App listening on port ${port}`);
   });
 });

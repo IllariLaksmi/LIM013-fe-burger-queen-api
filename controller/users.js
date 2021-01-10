@@ -1,4 +1,3 @@
-
 const { pagination } = require('../utils/utils');
 const { getAllData } = require('../bk_data/functiones');
 
@@ -33,4 +32,5 @@ module.exports = {
         }
         return resp.status(404).send('Page not found');
       });
-
+  },
+};
