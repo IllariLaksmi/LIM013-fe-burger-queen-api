@@ -22,7 +22,7 @@ module.exports = (secret) => (req, resp, next) => {
     try {
       conexion.query('SELECT * FROM users', (error, result) => {
         if (error) { throw error; }
-        // console.log(decodedToken);
+        console.info(decodedToken);
         const userVerified = result.find((user) => user.email === decodedToken.email);
         if (userVerified) {
           req.user = userVerified;
