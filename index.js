@@ -1,7 +1,5 @@
-
 const express = require('express');
 const cors = require('cors');
-
 
 const config = require('./config');
 const authMiddleware = require('./middleware/auth');
@@ -11,7 +9,6 @@ const pkg = require('./package.json');
 
 // eslint-disable-next-line no-unused-vars
 const { port, dbUrl, secret } = config;
-<
 const app = express(); // inicializarla
 app.use(cors());
 app.set('config', config); // settings nombre de variables
@@ -22,10 +19,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.use(authMiddleware(secret)); // import the code of  middleware
-=======
-const app = express();
 // TODO: Conexión a la Base de Datos (MySQL)
-
 // parse application/x-www-form-urlencoded --parse URL-encoded bodies
 app.use(express.urlencoded({ extended: false }));
 // recognize the incoming request object as a JSON object
@@ -42,12 +36,9 @@ routes(app, (err) => {
   if (err) {
     throw err;
   }
-  app.use(errorHandler)
-
- 
+  app.use(errorHandler);
 
   app.listen(port, () => { // starts at the port
-
     console.info(`App listening on port ${port}`);
   });
 });

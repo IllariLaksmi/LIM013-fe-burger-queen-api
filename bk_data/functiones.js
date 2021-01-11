@@ -1,4 +1,4 @@
-const conexion = require('./bq_data');
+const conexion = require('./data');
 
 const getAllData = (table) => new Promise((resolve, reject) => {
   conexion.query(`SELECT * FROM ${table}`, (error, result) => {
