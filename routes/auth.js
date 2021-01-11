@@ -1,14 +1,11 @@
 /* eslint-disable no-console */
 /* eslint-disable no-unused-vars */
-
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const conexion = require('../bk_data/bq_data');
-
+const conexion = require('../bk_data/bq_data.js');
 const config = require('../config');
 
 const { secret } = config;
-
 /** @module auth */
 module.exports = (app, nextMain) => {
   /**
@@ -35,7 +32,6 @@ module.exports = (app, nextMain) => {
         // eslint-disable-next-line max-len
         const payload = result.find((user) => user.email === email && bcrypt.compareSync(password, user.password));
         console.log(payload);
-
         if (payload) {
           const token = jwt.sign({ email: payload.email, password: payload.password }, secret);
           resp.header('authorization', token);
@@ -49,6 +45,5 @@ module.exports = (app, nextMain) => {
     }
     // next();
   });
-
   return nextMain();
 };

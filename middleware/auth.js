@@ -4,6 +4,7 @@ const conexion = require('../bk_data/bq_data');
 
 module.exports = (secret) => (req, resp, next) => {
   const { authorization } = req.headers;
+  console.info(authorization);
   if (!authorization) {
     return next();
   }
@@ -12,17 +13,15 @@ module.exports = (secret) => (req, resp, next) => {
   if (type.toLowerCase() !== 'bearer') {
     return next();
   }
-
   jwt.verify(token, secret, (err, decodedToken) => {
     if (err) {
       return next(403);
     }
-
     // TODO: Verificar identidad del usuario usando `decodedToken.uid`
     try {
       conexion.query('SELECT * FROM users', (error, result) => {
         if (error) { throw error; }
-        console.info(decodedToken);
+        // console.log(decodedToken);
         const userVerified = result.find((user) => user.email === decodedToken.email);
         if (userVerified) {
           req.user = userVerified;
@@ -34,16 +33,13 @@ module.exports = (secret) => (req, resp, next) => {
     }
   });
 };
-
 module.exports.isAuthenticated = (req) => {
   // TODO: decidir por la informacion del request si la usuaria esta autenticada
-
   if (req.user) {
     return true;
   }
   return false;
 };
-
 module.exports.isAdmin = (req) => {
   // TODO: decidir por la informacion del request si la usuaria es admin
   if (req.user.rolesAdmin) {
@@ -51,11 +47,7 @@ module.exports.isAdmin = (req) => {
   }
   return false;
 };
-
 // eslint-disable-next-line max-len
 module.exports.requireAuth = (req, resp, next) => (!module.exports.isAuthenticated(req) ? next(401) : next());
-
-// eslint-disable-next-line max-len
-// eslint-disable-next-line no-nested-ternary
 // eslint-disable-next-line max-len
 module.exports.requireAdmin = (req, resp, next) => (!module.exports.isAuthenticated(req) ? next(401) : !module.exports.isAdmin(req) ? next(403) : next());

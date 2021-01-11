@@ -3,7 +3,11 @@ const {
   requireAuth,
   requireAdmin,
 } = require('../middleware/auth');
+const {
+  getDataByKeyword, postData, updateDataByKeyword, deleteData,
+} = require('../bk_data/functiones');
 
+const { dataError } = require('../utils/utils');
 /** @module products */
 module.exports = (app, nextMain) => {
   /**
@@ -51,6 +55,18 @@ module.exports = (app, nextMain) => {
    */
   // eslint-disable-next-line no-unused-vars
   app.get('/products/:productId', requireAuth, (req, resp, next) => {
+    const { id } = req.params;
+    if (!(id) || !req.headers.authorization) {
+      // dataError(!id, !req.headers.authorization, resp);
+      return dataError(!id, !req.headers.authorization, resp);
+    }
+    getDataByKeyword('products', '_id', id)
+      .then((result) => {
+        // eslint-disable-next-line no-param-reassign
+        result[0]._id = id.toString();
+        return resp.status(200).send(result[0]);
+      })
+      .catch(() => resp.status(404).send({ message: 'El producto solicitado no existe' }));
   });
 
   /**
