@@ -1,8 +1,14 @@
+/* eslint-disable no-console */
 /* eslint-disable no-unused-vars */
+
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const conexion = require('../bk_data/data');
+
 const config = require('../config');
 
 const { secret } = config;
+
 /** @module auth */
 module.exports = (app, nextMain) => {
   /**
@@ -23,7 +29,26 @@ module.exports = (app, nextMain) => {
       return next(400);
     }
     // TODO: autenticar a la usuarix
-    next();
+    try {
+      conexion.query('SELECT * FROM users', (error, result) => {
+        if (error) throw error;
+        // eslint-disable-next-line max-len
+        const payload = result.find((user) => user.email === email && bcrypt.compareSync(password, user.password));
+        console.log(payload);
+
+        if (payload) {
+          const token = jwt.sign({ email: payload.email, password: payload.password }, secret);
+          resp.header('authorization', token);
+          resp.status(200).send({ message: 'succesful', token });
+        } else {
+          next(404);
+        }
+      });
+    } catch (error) {
+      return error;
+    }
+    // next();
   });
+
   return nextMain();
 };
