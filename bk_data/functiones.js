@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
-const conexion = require('../index.js');
+const conexion = require('./data.js');
 
 const getAllData = (table) => new Promise((resolve, reject) => {
   const sql = `SELECT * FROM users WHERE email = "${email}" `;

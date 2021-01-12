@@ -3,7 +3,7 @@
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const conexion = require('../index.js');
+const conexion = require('../bk_data/data.js');
 
 const config = require('../config');
 
