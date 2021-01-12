@@ -149,7 +149,7 @@ module.exports = (app, next) => {
     if (!((req.user[keyword]).toString() === uid || req.user.rolesAdmin)) {
       return resp.status(403).send({ message: 'You do not have enough permissions' });
     }
-    getDataByKeyword('users', keyword, uid)
+    return getDataByKeyword('users', keyword, uid)
       .then((result) => {
         const admin = !!(result[0].rolesAdmin);
         return resp.status(200).send(

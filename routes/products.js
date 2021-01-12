@@ -3,10 +3,11 @@
 const {
   requireAuth,
   requireAdmin,
+  isAdmin,
 } = require('../middleware/auth');
 const { getData } = require('../controller/users');
 const {
-  getDataByKeyword,
+  getDataByKeyword, updateDataByKeyword, createData, deleteData,
 } = require('../bk_data/functiones');
 const { dataError } = require('../utils/utils');
 /** @module products */
@@ -88,6 +89,31 @@ module.exports = (app, nextMain) => {
      * @code {404} si el producto ya existe
      */
   app.post('/products', requireAdmin, (req, resp, next) => {
+    const {
+      name, price, image, type,
+    } = req.body;
+    if (!(name && price) || !req.headers.authorization) {
+      return dataError(!(name && price), !req.headers.authorization, resp);
+    }
+    const date = new Date();
+
+    const newProduct = {
+      name,
+      price,
+      image,
+      type,
+      dateEntry: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`,
+    };
+    getDataByKeyword('products', 'name', name)
+      .then(() => resp.status(404).send({ message: `Ya existe un producto con el nombre: ${name}` }))
+      .catch(() => {
+        createData('products', newProduct)
+          .then((result) => {
+            // eslint-disable-next-line no-param-reassign
+            newProduct._id = (result.insertId).toString();
+            return resp.status(200).send(newProduct);
+          });
+      });
   });
   /**
      * @name PUT /products
@@ -112,7 +138,40 @@ module.exports = (app, nextMain) => {
      * @code {403} si no es admin
      * @code {404} si el producto con `productId` indicado no existe
      */
-  app.put('/products/:productId', requireAdmin, (req, resp, next) => {
+  app.put('/products/:id', requireAdmin, (req, resp, next) => {
+    const { id } = req.params;
+    const {
+      name, price, image, type,
+    } = req.body;
+    const date = new Date();
+    if (!(name || price || image || type) || !req.headers.authorization) {
+      return dataError(!(name || price || image || type), !req.headers.authorization, resp);
+    }
+    // eslint-disable-next-line no-restricted-globals
+    if (isNaN(price) && price !== undefined) {
+      return resp.status(400).send('Price have to be a number');
+    }
+
+    const newProduct = {
+      ...((name) && { name }),
+      ...((type) && { type }),
+      ...((price) && { price }),
+      ...((image) && { image }),
+      dateEntry: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`,
+    };
+    getDataByKeyword('products', '_id', id)
+      .then(() => {
+        updateDataByKeyword('products', newProduct, '_id', id)
+          .then(() => {
+            getDataByKeyword('products', '_id', id)
+              .then((product) => {
+                // eslint-disable-next-line no-param-reassign
+                product[0]._id = id.toString();
+                return resp.status(200).send(product[0]);
+              });
+          });
+      })
+      .catch(() => resp.status(404).send({ message: `No existe producto con ese id : ${id}` }));
   });
   /**
      * @name DELETE /products
@@ -132,7 +191,20 @@ module.exports = (app, nextMain) => {
      * @code {403} si no es ni admin
      * @code {404} si el producto con `productId` indicado no existe
      */
-  app.delete('/products/:productId', requireAdmin, (req, resp, next) => {
+  app.delete('/products/:id', requireAdmin, (req, resp, next) => {
+    const { id } = req.params;
+    if (!id || !req.headers.authorization) {
+      return dataError(!id, !req.headers.authorization, resp);
+    }
+    getDataByKeyword('products', '_id', id)
+      .then((product) => {
+        deleteData('products', '_id', id);
+        // eslint-disable-next-line no-param-reassign
+        product[0]._id = id.toString();
+        return resp.status(200).send(product[0]);
+        // resp.status(403).send({ message: `El producto con id ${id} no existe.` });
+      })
+      .catch(() => resp.status(404).send({ message: `No existe el producto con id ${id}.` }));
   });
   nextMain();
 };

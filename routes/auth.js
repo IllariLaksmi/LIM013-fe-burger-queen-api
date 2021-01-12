@@ -3,7 +3,7 @@
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const conexion = require('../bk_data/data.js');
+const conexion = require('../index.js');
 
 const config = require('../config');
 
@@ -29,25 +29,25 @@ module.exports = (app, nextMain) => {
       return next(400);
     }
     // TODO: autenticar a la usuarix
-    try {
-      conexion.query('SELECT * FROM users', (error, result) => {
-        if (error) throw error;
-        // eslint-disable-next-line max-len
-        const payload = result.find((user) => user.email === email && bcrypt.compareSync(password, user.password));
-        console.log(payload);
+    conexion.query('SELECT * FROM users', (error, result) => {
+      if (error) throw error;
+      // eslint-disable-next-line max-len
+      const payload = result.find(
+        (user) => user.email === email && bcrypt.compareSync(password, user.password),
+      );
+      console.log(payload);
 
-        if (payload) {
-          const token = jwt.sign({ email: payload.email, password: payload.password }, secret);
-          resp.header('authorization', token);
-          resp.status(200).send({ message: 'succesful', token });
-        } else {
-          next(404);
-        }
-      });
-    } catch (error) {
-      return error;
-    }
-    // next();
+      if (payload) {
+        const token = jwt.sign(
+          { email: payload.email, password: payload.password },
+          secret,
+        );
+        resp.header('authorization', token);
+        resp.status(200).send({ message: 'succesful', token });
+      } else {
+        next(500);
+      }
+    });
   });
 
   return nextMain();

@@ -101,6 +101,7 @@ describe('PUT /products/:productid', () => {
     })
       .then((resp) => {
         expect(resp.status).toBe(200);
+        console.info(resp);
         return resp.json();
       })
       .then((json) => fetchAsTestUser(`/products/${json._id}`, {

@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 const jwt = require('jsonwebtoken'); // middleware
-const conexion = require('../bk_data/data.js');
+const conexion = require('../index.js');
 
 module.exports = (secret) => (req, resp, next) => {
   const { authorization } = req.headers;

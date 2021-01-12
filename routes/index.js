@@ -1,8 +1,11 @@
-const auth = require('./auth');
+/* eslint-disable no-unused-vars */
+const mysql = require('mysql');
+const config = require('../config'); const auth = require('./auth');
 const users = require('./users');
 const products = require('./products');
 const orders = require('./orders');
 
+const { dbUrl } = config;
 const root = (app, next) => {
   const pkg = app.get('pkg');
   app.get('/', (req, res) => res.json({ name: pkg.name, version: pkg.version }));
