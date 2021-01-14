@@ -48,7 +48,8 @@ const fetchWithAuth = (token) => (url, opts = {}) => fetch(url, {
     authorization: `Bearer ${token}`,
   },
 });
-
+// eslint-disable-next-line no-console
+console.log(__e2e.testUserToken);
 const fetchAsAdmin = (url, opts) => fetchWithAuth(__e2e.adminToken)(url, opts);
 const fetchAsTestUser = (url, opts) => fetchWithAuth(__e2e.testUserToken)(url, opts);
 

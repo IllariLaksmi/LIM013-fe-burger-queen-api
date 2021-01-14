@@ -30,6 +30,16 @@ const createData = (table, toInsert) => new Promise((resolve, reject) => {
   });
 });
 
+const getDataByEmail = (table, value) => new Promise((resolve, reject) => {
+  conexion.query(`SELECT * FROM ${table} WHERE email =?`, value, (error, result) => {
+    if (result.length > 0) {
+      resolve(result);
+    } else {
+      reject(error);
+    }
+  });
+});
+
 const updateDataByKeyword = (table, toUpdate, keyword, value) => new Promise((resolve, reject) => {
   conexion.query(`UPDATE ${table} SET ? WHERE ${keyword} = ?`, [toUpdate, value], (error, result) => {
     // eslint-disable-next-line no-param-reassign
@@ -51,4 +61,5 @@ module.exports = {
   createData,
   updateDataByKeyword,
   deleteData,
+  getDataByEmail,
 };

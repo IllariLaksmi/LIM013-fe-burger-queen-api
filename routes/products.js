@@ -112,7 +112,8 @@ module.exports = (app, nextMain) => {
             // eslint-disable-next-line no-param-reassign
             newProduct._id = (result.insertId).toString();
             return resp.status(200).send(newProduct);
-          });
+          })
+          .catch((error) => console.info(error));
       });
   });
   /**

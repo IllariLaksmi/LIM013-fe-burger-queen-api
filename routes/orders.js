@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const { getData } = require('../controller/users');
 const {
   requireAuth,
 } = require('../middleware/auth');
@@ -32,9 +33,7 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    */
   // eslint-disable-next-line no-unused-vars
-  app.get('/orders', requireAuth, (req, resp, next) => {
-  });
-
+  app.get('/orders', requireAuth, (req, resp, next) => getData(req, resp, next, 'orders'));
   /**
    * @name GET /orders/:orderId
    * @description Obtiene los datos de una orden especifico
