@@ -1,8 +1,14 @@
 /* eslint-disable no-unused-vars */
 const { getData } = require('../controller/users');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 const {
-  requireAuth,
-} = require('../middleware/auth');
+  getDataByKeyword,
+  updateDataByKeyword,
+  createData,
+  deleteData,
+  getOrderProduct,
+} = require('../bk_data/functiones');
+const { dataError } = require('../utils/utils');
 
 /** @module orders */
 module.exports = (app, nextMain) => {
@@ -57,6 +63,15 @@ module.exports = (app, nextMain) => {
    */
   // eslint-disable-next-line no-unused-vars
   app.get('/orders/:orderId', requireAuth, (req, resp, next) => {
+    const { orderId } = req.params;
+    if (!orderId || !req.headers.authorization) {
+      return dataError(!orderId, !req.headers.authorization, resp);
+    }
+    getDataByKeyword('orders', '_id', orderId)
+      .then((result) => {
+        getOrderProduct(orderId, result, resp);
+      })
+      .catch(() => resp.status(404).send({ message: 'The order does not exist' }));
   });
 
   /**
@@ -87,6 +102,51 @@ module.exports = (app, nextMain) => {
    */
   // eslint-disable-next-line no-unused-vars
   app.post('/orders', requireAuth, (req, resp, next) => {
+    const {
+      userId, client, products,
+    } = req.body;
+    if ((!userId || !products) || !req.headers.authorization) {
+      return dataError((!userId || !products), !req.headers.authorization, resp);
+    }
+    const date = new Date();
+
+    const newOrder = {
+      userId: Number(userId),
+      client,
+      status: 'pending',
+      dateEntry: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`,
+    };
+    // saving orders in DB
+    createData('orders', newOrder)
+      .then((result) => {
+        // because we need to save all products in the list in orders_products table
+        products.forEach((productObj) => {
+          const newOrderProduct = {
+            orderId: result.insertId,
+            qty: productObj.qty,
+            productId: productObj.productId,
+          };
+          createData('orders_products', newOrderProduct);
+        });
+        const dataProduct = products.map((p) => {
+          const productID = p.productId;
+          return getDataByKeyword('products', '_id', productID);
+        });
+        // newOrder.products = [];
+        Promise.all(dataProduct).then((values) => {
+          newOrder._id = (result.insertId).toString();
+
+          newOrder.products = values.flat().map((e) => ({
+            product: e,
+          }));
+          newOrder.products.forEach((x, i) => {
+            // eslint-disable-next-line no-param-reassign
+            x.qty = products[i].qty;
+          });
+          return resp.status(200).send(newOrder);
+        });
+      })
+      .catch((error) => console.error(error));
   });
 
   /**
@@ -119,6 +179,51 @@ module.exports = (app, nextMain) => {
    */
   // eslint-disable-next-line no-unused-vars
   app.put('/orders/:orderId', requireAuth, (req, resp, next) => {
+    const { orderId } = req.params;
+    const {
+      userId, client, products, status,
+    } = req.body;
+    const notAnyProperty = !(userId || client || products || status);
+    const validateStatus = (status) ? ['pending', 'canceled', 'preparing', 'delivering', 'delivered'].includes(status) : true;
+
+    if ((notAnyProperty || !validateStatus) || !req.headers.authorization) {
+      return dataError((notAnyProperty || !validateStatus), !req.headers.authorization, resp);
+    }
+    const date = new Date();
+    const newOrder = {
+      ...((userId) && { userId }),
+      ...((client) && { client }),
+      ...((status) && { status }),
+      ...((status === 'delivered') && { dateProcessed: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}` }),
+    };
+    getDataByKeyword('orders', '_id', orderId)
+      .then(() => {
+        updateDataByKeyword('orders', newOrder, '_id', orderId)
+          .then(() => {
+            if (products) {
+              const x = products.reduce((acumulator, element) => {
+                const newOrderProduct = {
+                  ...((products) && { qty: element.qty, productId: element.productId }),
+                };
+                acumulator.push(updateDataByKeyword('orders_products', newOrderProduct, 'productId', element.productId));
+                return acumulator;
+              }, []);
+              Promise.all(x)
+                .then(() => {
+                  getDataByKeyword('orders', '_id', orderId)
+                    .then((result) => {
+                      getOrderProduct(orderId, result, resp);
+                    });
+                });
+            } else {
+              getDataByKeyword('orders', '_id', orderId)
+                .then((result) => {
+                  getOrderProduct(orderId, result, resp);
+                });
+            }
+          });
+      })
+      .catch(() => resp.status(404).send({ message: `No existe orden con ese id : ${orderId}` }));
   });
 
   /**
@@ -144,6 +249,18 @@ module.exports = (app, nextMain) => {
    */
   // eslint-disable-next-line no-unused-vars
   app.delete('/orders/:orderId', requireAuth, (req, resp, next) => {
+    const { orderId } = req.params;
+    if (!orderId || !req.headers.authorization) {
+      return dataError(!orderId, !req.headers.authorization, resp);
+    }
+    getDataByKeyword('orders', '_id', orderId)
+      .then((result) => {
+        deleteData('orders', '_id', orderId);
+        getOrderProduct(orderId, result, resp);
+      })
+      .catch(() => resp
+        .status(404)
+        .send({ message: `No existe el producto con id ${orderId}.` }));
   });
 
   nextMain();

@@ -3,7 +3,6 @@
 const {
   requireAuth,
   requireAdmin,
-  isAdmin,
 } = require('../middleware/auth');
 const { getData } = require('../controller/users');
 const {
