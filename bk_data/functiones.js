@@ -3,7 +3,7 @@
 const conexion = require('./data.js');
 
 const getAllData = (table) => new Promise((resolve, reject) => {
-  const sql = `SELECT * FROM users WHERE email = "${email}" `;
+  const sql = `SELECT * FROM ${table} `;
   conexion.query(sql, (error, result) => {
     if (result.length) {
       resolve(result);
