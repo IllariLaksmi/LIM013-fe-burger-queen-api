@@ -45,7 +45,7 @@ module.exports = (app, nextMain) => {
         resp.header('authorization', token);
         resp.status(200).send({ message: 'succesful', token });
       } else {
-        next(500);
+        next(404);
       }
     });
   });

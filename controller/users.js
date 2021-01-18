@@ -40,7 +40,6 @@ module.exports = {
                   product: product[0],
                 }),
               ));
-              console.info(arrayOrder);
               return Promise.all(arrayOrder).then((producto) => {
                 order.products = producto;
                 return order;

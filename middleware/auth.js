@@ -31,7 +31,7 @@ module.exports = (secret) => (req, resp, next) => {
         } else { next(404); }
       });
     } catch (error) {
-      next(404);
+      next(500);
     }
   });
 };
