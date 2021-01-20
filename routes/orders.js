@@ -1,14 +1,12 @@
-/* eslint-disable no-unused-vars */
-const { getData } = require('../controller/users');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
 const {
-  getDataByKeyword,
-  updateDataByKeyword,
-  createData,
-  deleteData,
-  getOrderProduct,
-} = require('../bk_data/functiones');
-const { dataError } = require('../utils/utils');
+  requireAuth,
+} = require('../middleware/auth');
+const { getData } = require('../controller/users');
+const {
+  getDataByKeyword, createData, updateDataByKeyword, deleteData,
+} = require('../bk_data/functiones.js');
+
+const { dataError, getOrderProduct } = require('../utils/utils');
 
 /** @module orders */
 module.exports = (app, nextMain) => {
@@ -38,8 +36,8 @@ module.exports = (app, nextMain) => {
    * @code {200} si la autenticación es correcta
    * @code {401} si no hay cabecera de autenticación
    */
-  // eslint-disable-next-line no-unused-vars
   app.get('/orders', requireAuth, (req, resp, next) => getData(req, resp, next, 'orders'));
+
   /**
    * @name GET /orders/:orderId
    * @description Obtiene los datos de una orden especifico
@@ -61,7 +59,6 @@ module.exports = (app, nextMain) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {404} si la orden con `orderId` indicado no existe
    */
-  // eslint-disable-next-line no-unused-vars
   app.get('/orders/:orderId', requireAuth, (req, resp, next) => {
     const { orderId } = req.params;
     if (!orderId || !req.headers.authorization) {
@@ -69,9 +66,11 @@ module.exports = (app, nextMain) => {
     }
     getDataByKeyword('orders', '_id', orderId)
       .then((result) => {
-        getOrderProduct(orderId, result, resp);
+        const ordersSwitch = (result[0].switch === 0);
+        console.info(ordersSwitch);
+        if (ordersSwitch) { getOrderProduct(orderId, result, resp); } else { next(500); }
       })
-      .catch(() => resp.status(404).send({ message: 'The order does not exist' }));
+      .catch(() => resp.status(404).send({ message: 'El producto solicitado no existe' }));
   });
 
   /**
@@ -114,7 +113,7 @@ module.exports = (app, nextMain) => {
       userId: Number(userId),
       client,
       status: 'pending',
-      dateEntry: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`,
+      dateEntry: date,
     };
     // saving orders in DB
     createData('orders', newOrder)
@@ -126,6 +125,8 @@ module.exports = (app, nextMain) => {
             qty: productObj.qty,
             productId: productObj.productId,
           };
+          // eslint-disable-next-line no-console
+          console.log('NEW ORDER PRODUCT', newOrderProduct);
           createData('orders_products', newOrderProduct);
         });
         const dataProduct = products.map((p) => {
@@ -194,7 +195,7 @@ module.exports = (app, nextMain) => {
       ...((userId) && { userId }),
       ...((client) && { client }),
       ...((status) && { status }),
-      ...((status === 'delivered') && { dateProcessed: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}` }),
+      ...((status === 'delivered') && { dateProcessed: date }),
     };
     getDataByKeyword('orders', '_id', orderId)
       .then(() => {
@@ -253,14 +254,12 @@ module.exports = (app, nextMain) => {
     if (!orderId || !req.headers.authorization) {
       return dataError(!orderId, !req.headers.authorization, resp);
     }
-    getDataByKeyword('orders', '_id', orderId)
+    return getDataByKeyword('orders', '_id', orderId)
       .then((result) => {
-        deleteData('orders', '_id', orderId);
         getOrderProduct(orderId, result, resp);
+        deleteData('orders', '_id', orderId);
       })
-      .catch(() => resp
-        .status(404)
-        .send({ message: `No existe el producto con id ${orderId}.` }));
+      .catch(() => resp.status(404).send({ message: `No existe el producto con id ${orderId}.` }));
   });
 
   nextMain();
