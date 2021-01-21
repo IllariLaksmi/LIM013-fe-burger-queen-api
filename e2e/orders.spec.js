@@ -1,5 +1,5 @@
 jest.setTimeout(1000000);
-const { getDataByKeyword } = require('../db-data/sql_functions');
+const { getDataByKeyword } = require('../bk_data/functiones.js');
 
 const {
   fetch,
